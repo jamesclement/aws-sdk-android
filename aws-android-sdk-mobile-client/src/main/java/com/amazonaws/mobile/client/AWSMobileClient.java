@@ -131,6 +131,8 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static com.amazonaws.mobile.client.results.SignInState.CUSTOM_CHALLENGE;
+import static com.amazonaws.mobileconnectors.cognitoidentityprovider.util.CognitoServiceConstants.AUTH_TYPE_INIT_CUSTOM_AUTH;
+import static com.amazonaws.mobileconnectors.cognitoidentityprovider.util.CognitoServiceConstants.AUTH_TYPE_INIT_USER_PASSWORD;
 
 /**
  * The AWSMobileClient provides client APIs and building blocks for developers who want to create
@@ -1203,12 +1205,11 @@ public final class AWSMobileClient implements AWSCredentialsProvider {
                             public void getAuthenticationDetails(AuthenticationContinuation authenticationContinuation, String userId) {
                                 Log.d(TAG, "Sending password.");
                                 try {
-                                    if (
-                                            awsConfiguration.optJsonObject(AUTH_KEY) != null &&
+                                    if (awsConfiguration.optJsonObject(AUTH_KEY) != null &&
                                             awsConfiguration.optJsonObject(AUTH_KEY).has("authenticationFlowType") &&
-                                            awsConfiguration.optJsonObject(AUTH_KEY).getString("authenticationFlowType").equals("CUSTOM_AUTH")
-                                    ) {
-                                        final HashMap<String, String> authParameters = new HashMap<String, String>();
+                                            (awsConfiguration.optJsonObject(AUTH_KEY).getString("authenticationFlowType").equals(AUTH_TYPE_INIT_CUSTOM_AUTH) ||
+                                                    awsConfiguration.optJsonObject(AUTH_KEY).getString("authenticationFlowType").equals(AUTH_TYPE_INIT_USER_PASSWORD))) {
+                                        final HashMap<String, String> authParameters = new HashMap<>();
                                         if (password != null) {
                                             authenticationContinuation.setAuthenticationDetails(new AuthenticationDetails(username, password, authParameters, validationData));
                                         } else {
@@ -1220,7 +1221,6 @@ public final class AWSMobileClient implements AWSCredentialsProvider {
                                 } catch (JSONException e) {
                                     e.printStackTrace();
                                 }
-
                                 authenticationContinuation.continueTask();
                             }
 
